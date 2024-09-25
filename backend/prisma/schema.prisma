@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,7 +6,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 
 model User {
   id        Int      @id @default(autoincrement())
@@ -34,13 +27,14 @@ model Queue {
   id      Int    @id @default(autoincrement())
   spaceId Int
   space   Space  @relation("SpaceQueue", fields: [spaceId], references: [id])
-  songs   Song[] @relation("QueueSongs")
+  order   Int    // Order of the song in the queue
+  musicId Int
+  music   Music  @relation(fields: [musicId], references: [id])
 }
 
-model Song {
+model Music {
   id       Int    @id @default(autoincrement())
   title    String
-  videoId  String
-  queueId  Int
-  queue    Queue  @relation("QueueSongs", fields: [queueId], references: [id])
+  url      String  // YouTube URL or video link
+  queues   Queue[] // Music can appear in multiple queues
 }

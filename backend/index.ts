@@ -6,6 +6,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import UserRouter from './routes/UserRouter.js';
 import SpaceRouter from './routes/SpaceRouter.js';
+import MusicRouter from './routes/MusicRouter.js';
 
 dotenv.config();
 const app = express(); 
@@ -25,6 +26,7 @@ app.get('/' , (req, res) => {
 
 app.use('/api/user' , UserRouter) ; 
 app.use('/api/space' , SpaceRouter) ; 
+app.use('/api/music' , MusicRouter) ; 
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
