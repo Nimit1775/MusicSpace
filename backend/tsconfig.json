@@ -9,6 +9,7 @@
     "rootDir": "./",
     "sourceMap": true , 
     "allowJs": true,
+    "typeRoots": ["./types", "./node_modules/@types"] , 
     "resolveJsonModule": true,
   },
   "ts-node": {
