@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { Server as SocketIOServer } from 'socket.io';
 import http from 'http';
 import dotenv from 'dotenv';
+import UserRouter from './routes/UserRouter.js';
 
 dotenv.config();
 const app = express(); 
@@ -20,6 +21,8 @@ const io = new SocketIOServer(server, {
 app.get('/' , (req, res) => {
     res.send('Hello World');
 }) ;
+
+app.use('/api/user' , UserRouter) ; 
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
