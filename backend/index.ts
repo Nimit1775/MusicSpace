@@ -28,6 +28,16 @@ app.use('/api/user' , UserRouter) ;
 app.use('/api/space' , SpaceRouter) ; 
 app.use('/api/music' , MusicRouter) ; 
 
+io.on('connection', (socket) => {
+  socket.on('join_space', (spaceId) => {
+    socket.join(spaceId);
+  });
+
+  socket.on('leave_space', (spaceId) => {
+    socket.leave(spaceId);
+  });
+});
+
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 }); 
