@@ -1,0 +1,4 @@
+interface Window {
+    onYouTubeIframeAPIReady: () => void;
+  }
+  

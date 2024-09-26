@@ -24,19 +24,27 @@ interface QueueItem {
 const Space: React.FC = () => {
   const { spaceId } = useParams<{ spaceId: string }>();
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem(`isAuthenticated-${spaceId}`) === 'true';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [videos, setVideos] = useState<Video[]>([]);
   const [queue, setQueue] = useState<QueueItem[]>([]);
-  const [playingVideoId, setPlayingVideoId] = useState('');
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<QueueItem | null>(null);
+
   useEffect(() => {
-    if (isAuthenticated && spaceId) {
+    if (isAuthenticated) {
       fetchQueue();
     }
   }, [spaceId, isAuthenticated]);
 
+  useEffect(() => {
+    if (queue.length > 0 && !currentlyPlaying) {
+      setCurrentlyPlaying(queue[0]);
+    }
+  }, [queue, currentlyPlaying]);
+
   const fetchQueue = async () => {
-    if (!spaceId) return;
     try {
       const response = await api.get(`/music/${spaceId}/queue`);
       setQueue(response.data);
@@ -56,27 +64,27 @@ const Space: React.FC = () => {
   };
 
   const handleJoinSpace = async () => {
-    if (!spaceId) return;
     try {
       await api.post(`/space/join/${spaceId}`, { password });
       setIsAuthenticated(true);
+      localStorage.setItem(`isAuthenticated-${spaceId}`, 'true');
     } catch (error) {
       console.error('Join space error', error);
     }
   };
 
   const addToQueue = async (video: Video) => {
-    if (!spaceId) return;
     try {
       await api.post(`/music/${spaceId}/add`, { title: video.title, url: video.url });
       fetchQueue();
+      setSearchQuery('');
+      setVideos([]);
     } catch (error) {
       console.error('Add to queue error', error);
     }
   };
 
   const removeFromQueue = async (queueId: number) => {
-    if (!spaceId) return;
     try {
       await api.delete(`/music/${spaceId}/queue/${queueId}`);
       fetchQueue();
@@ -85,9 +93,22 @@ const Space: React.FC = () => {
     }
   };
 
-  if (!spaceId) {
-    return <div>Invalid space ID</div>;
-  }
+  const handleVideoEnd = async () => {
+    if (currentlyPlaying) {
+      try {
+        await api.delete(`/music/${spaceId}/queue/${currentlyPlaying.id}`);
+        setQueue((prevQueue) => {
+          const newQueue = prevQueue.slice(1);
+          setCurrentlyPlaying(newQueue[0] || null);
+          return newQueue;
+        });
+        console.log('Playing next video:', queue[1]);
+      } catch (error) {
+        console.error('Error removing video from queue:', error);
+      }
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="container mx-auto p-4">
@@ -128,9 +149,15 @@ const Space: React.FC = () => {
           </div>
         ))}
       </div>
-      {playingVideoId && <YouTubePlayer videoId={playingVideoId} />}
-      <Queue spaceId={spaceId} queue={queue} removeFromQueue={removeFromQueue} />
+      {currentlyPlaying && currentlyPlaying.music.url && (
+        <YouTubePlayer
+          videoId={currentlyPlaying.music.url.split('v=')[1]}
+          onEnd={handleVideoEnd}
+        />
+      )}
+      {spaceId && <Queue spaceId={spaceId} queue={queue} removeFromQueue={removeFromQueue} />}
     </div>
   );
 };
+
 export default Space;
