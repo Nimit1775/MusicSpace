@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken";
 const prisma = new PrismaClient(); 
 
 export const createSpace = async ( req : Request , res : Response )=>  { 
-
     const { name , password} = req.body ;  
     if (!req.user) {
         return res.status(401).json({ error : 'Unauthorized' });
@@ -20,18 +19,13 @@ export const createSpace = async ( req : Request , res : Response )=>  {
         }   
     }); 
     res.status(200).json({space});
-
 }
 
 export const getSpaces = async ( req : Request , res : Response )=>  { 
     if (!req.user) {
         return res.status(401).json({ error : 'Unauthorized' });
     }
-    const spaces = await prisma.space.findMany({
-        where : {
-            ownerId : req.user.userId
-        }
-    });
+    const spaces = await prisma.space.findMany();
     res.status(200).json({spaces});
 }
 
@@ -82,4 +76,3 @@ export const deleteSpace = async ( req : Request , res : Response )=>  {
     });
     res.status(200).json({message : 'Space deleted successfully'});
 }
-
