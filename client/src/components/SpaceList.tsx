@@ -10,10 +10,12 @@ interface Space {
 
 const SpaceList: React.FC = () => {
   const [spaces, setSpaces] = useState<Space[]>([]);
-  const { token } = useAuth();
+  const { token, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (loading) return; // Wait for loading to complete
+
     if (!token) {
       navigate('/auth');
       return;
@@ -21,35 +23,41 @@ const SpaceList: React.FC = () => {
 
     const fetchSpaces = async () => {
       try {
-        const response = await api.get('/space/getspaces');
+        const response = await api.get('/space/getspaces', {
+          headers: {
+            Authorization: token,
+          },
+        });
         setSpaces(response.data.spaces);
       } catch (error) {
-        console.error('Error fetching spaces', error);
-        // Handle error (e.g., show error message to user)
+        console.error('Error fetching spaces:', error);
       }
     };
 
     fetchSpaces();
-  }, [token, navigate]);
+  }, [token, loading, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading indicator while retrieving the token
+  }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">My Music Spaces</h1>
+      <h1 className="text-2xl font-bold mb-4">Available Spaces</h1>
       <Link to="/create-space" className="bg-blue-500 text-white px-4 py-2 rounded mb-4 inline-block">
         Create New Space
       </Link>
-      {spaces.length === 0 ? (
-        <p className="text-gray-600">You haven't created any spaces yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {spaces.map((space) => (
-            <Link key={space.id} to={`/space/${space.id}`} className="bg-white p-4 rounded shadow hover:shadow-md transition-shadow duration-200">
-              <h2 className="text-xl font-semibold">{space.name}</h2>
+      <ul>
+        {spaces.map((space) => (
+          <li key={space.id} className="mb-2">
+            <Link to={`/space/${space.id}`} className="text-blue-500 hover:underline">
+              {space.name}
             </Link>
-          ))}
-        </div>
-      )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
+
 export default SpaceList;
