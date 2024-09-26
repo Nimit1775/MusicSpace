@@ -35,7 +35,31 @@ export const getSpaces = async ( req : Request , res : Response )=>  {
     res.status(200).json({spaces});
 }
 
-
+export const joinSpace = async (req: Request, res: Response) => {
+    const { spaceId } = req.params;
+    const { password } = req.body;
+  
+    try {
+      const space = await prisma.space.findUnique({
+        where: { id: parseInt(spaceId) }
+      });
+      if (!space) {
+        return res.status(404).json({ error: 'Space not found' });
+      }
+  
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, space.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Incorrect password' });
+      }
+  
+      res.status(200).json({ message: 'Authenticated successfully' });
+    } catch (error) {
+      console.error('Error joining space:', error);
+      res.status(500).json({ error: 'Failed to join space' });
+    }
+  };
+  
 
 export const deleteSpace = async ( req : Request , res : Response )=>  { 
     const { id } = req.params ; 
