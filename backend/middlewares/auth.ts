@@ -2,17 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header('Authorization');
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
+  if (token == null) return res.sendStatus(401);
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as { userId: number };
-    req.user = { userId: decoded.userId };
+  jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
     next();
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
+  });
 };

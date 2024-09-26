@@ -1,32 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { api } from '../apis/api';
+import React from 'react';
+interface QueueItem {
+  id: number;
+  music: {
+    id: number;
+    title: string;
+    url: string;
+  };
+  order: number;
+}
 
 interface QueueProps {
   spaceId: string;
+  queue: QueueItem[];
+  removeFromQueue: (queueId: number) => void;
 }
 
-const Queue: React.FC<QueueProps> = ({ spaceId }) => {
-  const [queue, setQueue] = useState<any[]>([]);
-
-  const fetchQueue = async () => {
-    try {
-      const response = await api.get(`/music/${spaceId}/queue`);
-      setQueue(response.data.queue);
-    } catch (error) {
-      console.error('Fetch queue error', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchQueue();
-  }, [spaceId]);
-
+const Queue: React.FC<QueueProps> = ({ spaceId, queue, removeFromQueue }) => {
   return (
-    <div>
-      <h2>Queue</h2>
-      <ul>
+    <div className="mt-4">
+      <h2 className="text-xl font-bold mb-2">Queue for Space {spaceId}</h2>
+      <ul className="space-y-2">
         {queue.map((item) => (
-          <li key={item.id}>{item.title}</li>
+          <li key={item.id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+            <span>{item.music.title}</span>
+            <button
+              onClick={() => removeFromQueue(item.id)}
+              className="bg-red-500 text-white px-2 py-1 rounded"
+            >
+              Remove
+            </button>
+          </li>
         ))}
       </ul>
     </div>
